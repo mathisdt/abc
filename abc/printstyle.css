@@ -1,0 +1,23 @@
+
+/* ABC - Address Book Continued                                          */
+
+/* Author:     Mathis Dirksen-Thedens <zephyrsoft@users.sourceforge.net> */
+/* Homepage:   http://zephyrsoftware.sourceforge.net/                    */ 
+/* License:    GPL v2                                                    */
+
+#title, #navigation, #debug {
+	display: none;
+}
+
+#printtitle {
+	display: inline;
+}
+
+.np, .nosort, .sortbottom {
+	display: none;
+}
+
+input {
+	background: #ffffff;
+}
+
