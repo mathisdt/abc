@@ -38,11 +38,16 @@ function db_rows($query) {
 	return mysql_affected_rows();
 }
 
-function login($username, $password) {
+function login($username, $password, $passwordless = FALSE) {
 	// login this user
 	global $dbusertable;
-	$count = db_rows('select username,password from '.$dbusertable.' where username="'.mysql_escape_string($username).'" and password="'.
-		mysql_escape_string($password).'"');
+	$count = 0;
+	if ($passwordless) {
+		$count = db_rows('select username from '.$dbusertable.' where username="'.mysql_escape_string($username).'"');
+	} else {
+		$count = db_rows('select username,password from '.$dbusertable.' where username="'.mysql_escape_string($username).'" and password="'.
+			mysql_escape_string($password).'"');
+	}
 	if ($count == 1) {
 		db_rows('update '.$dbusertable.' set lastlogin=now() where username="'.mysql_escape_string($username).'"');
 		$_SESSION['user'] = mysql_escape_string($username);

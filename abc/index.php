@@ -15,7 +15,7 @@ require_once('functions.php');
 
 // start or restore session
 ini_set('session.use_only_cookies', 1);
-session_name('address_book_continued_'.str_replace('.', '_', $_SERVER['REMOTE_ADDR']));
+session_name('address_book_continued_'.str_replace('.', '_', $_SERVER['REMOTE_ADDR']).'_'.$abc_id);
 session_start();
 
 if (getLoggedInUser() == null && $_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -26,20 +26,31 @@ if (getLoggedInUser() == null && $_SERVER['REQUEST_METHOD'] == 'POST') {
 		header('Location: '.getURL() . '?msg=loginfail');
 	}
 } else if (getLoggedInUser() == null && $_SERVER['REQUEST_METHOD'] == 'GET') {
-	// show login form
-	echo getHeader();
-	echo '<span id="title"><h2>Address Book Continued: Login</h2></span>';
-	echo '<form method="POST" action="'.getURL().'">';
-	echo '<table border="0">';
-	echo '<tr><td style="text-align: right;">Username:</td><td><input type="text" name="user" size="30" style="padding-left: 3px;" /></td></tr>';
-	echo '<tr><td style="text-align: right;">Password:</td><td><input type="password" name="password" size="30" style="padding-left: 3px;" /></td></tr>';
-	echo '<tr><td colspan="2" style="text-align: right;"><input type="submit" value="Login!"/></td></tr>';
-	echo '</table>';
-	echo '</form>';
-	if ($_GET['msg'] != null && $_GET['msg'] == 'loginfail') {
-		echo '<br /><span style="color: red;"><small>This combination of username and password is incorrect!</small></span>';
+	if ($allow_passwordless_login && $_GET['login'] != null && $_GET['login'] !='' && $_SERVER['REMOTE_ADDR'] == '127.0.0.1') {
+		// login this user without password
+		if (login($_GET['login'], null, true)) {
+			header('Location: '.getURL());
+		} else {
+			header('Location: '.getURL() . '?msg=passlessloginfail');
+		}
+	} else {
+		// show login form
+		echo getHeader();
+		echo '<span id="title"><h2>Address Book Continued: Login</h2></span>';
+		echo '<form method="POST" action="'.getURL().'">';
+		echo '<table border="0">';
+		echo '<tr><td style="text-align: right;">Username:</td><td><input type="text" name="user" size="30" style="padding-left: 3px;" /></td></tr>';
+		echo '<tr><td style="text-align: right;">Password:</td><td><input type="password" name="password" size="30" style="padding-left: 3px;" /></td></tr>';
+		echo '<tr><td colspan="2" style="text-align: right;"><input type="submit" value="Login!"/></td></tr>';
+		echo '</table>';
+		echo '</form>';
+		if ($_GET['msg'] != null && $_GET['msg'] == 'loginfail') {
+			echo '<br /><span style="color: red;"><small>This combination of username and password is incorrect!</small></span>';
+		} else if ($_GET['msg'] != null && $_GET['msg'] == 'passlessloginfail') {
+			echo '<br /><span style="color: red;"><small>This username is incorrect!</small></span>';
+		}
+		echo getFooter();
 	}
-	echo getFooter();
 } else if (getLoggedInUser() != null && $_SERVER['REQUEST_METHOD'] == 'GET') {
 	// user has logged in and sends a frontend request
 	if ($_GET['abc_action'] == null || $_GET['abc_action'] == "" || $_GET['abc_action'] == "list") {

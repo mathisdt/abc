@@ -18,8 +18,16 @@ $dbinstance = 'abc';
 $dbuser = 'abc';
 $dbpassword = 'abc';
 
-// max. session duration in time format
+// max. session duration in format hh:mm:ss
 $sessionmaxtime = '06:00:00';
+
+// passwordless login from localhost using ?login=username
+$allow_passwordless_login = TRUE;
+
+// put a unique ID in here (only characters a-z and underscore _)
+// if you want to install ABC more than once on a server
+// (important - else your users will be logged out of all ABC installations when they click "logout")
+$abc_id = 'default';
 
 // ==================== CONFIGURATION END ====================
 

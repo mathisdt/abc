@@ -164,7 +164,7 @@ function insert() {
 	insertRow.childNodes[10].firstChild.value = "";
 	insertRow.childNodes[11].firstChild.value = "";
 	insertRow.setAttribute("bgColor", "");
-	insertRow.removeAttribute("class");
+	insertRow.setAttribute("class", "sortbottom");
 	
 	// send request to server which updates the database there
 	XMLHTTP.open("POST", document.URL);
@@ -242,6 +242,7 @@ function insert_finish() {
 		el.childNodes[9].innerHTML = oneTrailingSpace(phone3);
 		el.childNodes[10].innerHTML = oneTrailingSpace(email);
 		el.childNodes[11].innerHTML = oneTrailingSpace(remarks);
+		el.removeAttribute("class");
 		
 		// correct buttons
 		el.childNodes[0].innerHTML = "<a href=\"#\" onclick=\"edit('"+id+"'); return false;\"><img src=\"edit.png\" alt=\"\" /></a>";
