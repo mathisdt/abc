@@ -58,7 +58,7 @@ if (getLoggedInUser() == null && $_SERVER['REQUEST_METHOD'] == 'POST') {
 		echo getHeader();
 		echo '<div id="title"><h2>Address Book Continued</h2></div>';
 		echo '<div id="printtitle"><h2>Address Book of '.ucfirst(getLoggedInUser()).'</h2></div>';
-		echo '<span id="navigation"><a href="#" onclick="window.print(); return false;">Print</a>&nbsp;-&nbsp;<a href="#" onclick="bigger(); return false;">'.
+		echo '<span id="navigation"><a href="#" onclick="window.print(); return false;">Print</a>&nbsp;-&nbsp;<a id="remarkslink" href="#" onclick="showRemarks(); return false;">Show remarks</a>&nbsp;-&nbsp;<a href="#" onclick="bigger(); return false;">'.
 			'Increase font size</a>&nbsp;-&nbsp;<a href="#" onclick="smaller(); return false;">Decrease font size</a>&nbsp;-&nbsp;<a href="'.getURL().
 			'?abc_action=logout">Logout</a></span>';
 		echo '<div id="debug"></div>';

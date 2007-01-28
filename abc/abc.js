@@ -24,6 +24,7 @@ if (window.XMLHttpRequest) {
 }
 
 var insertRow = null;
+var insertedRow = null;
 
 function mouseOver(dieses) {
 	dieses.bgColor="#dddddd";
@@ -40,6 +41,30 @@ function debug(text) {
 	if (false) {
 		document.getElementById("debug").innerHTML = "<br />"+text;
 		window.setTimeout("clearDebugSpace()", 3000);
+	}
+}
+
+function hideRemarks() {
+	// change link to "show remarks"
+	var link = document.getElementById("remarkslink");
+	link.innerHTML = "Show remarks"
+	link.setAttribute("onclick", "showRemarks(); return false;");
+	// set class="rn" for whole column
+	var column = document.getElementsByName("r");
+	for (var i = 0; i < column.length; i++) {
+		column[i].setAttribute("class", "rn");
+	}
+}
+
+function showRemarks() {
+	// change link to "hide remarks"
+	var link = document.getElementById("remarkslink");
+	link.innerHTML = "Hide remarks"
+	link.setAttribute("onclick", "hideRemarks(); return false;");
+	// reset whole column to class="r"
+	var column = document.getElementsByName("r");
+	for (var i = 0; i < column.length; i++) {
+		column[i].setAttribute("class", "r");
 	}
 }
 
@@ -118,13 +143,13 @@ function edit(id) {
 	// modify the table row to contain a form
 	el.childNodes[1].innerHTML = "<input type=\"text\" size=\"10\" value=\""+firstname+"\" />";
 	el.childNodes[2].innerHTML = "<input type=\"text\" size=\"12\" value=\""+lastname+"\" />";
-	el.childNodes[3].innerHTML = "<input type=\"text\" size=\"20\" value=\""+street+"\" />";
+	el.childNodes[3].innerHTML = "<input type=\"text\" size=\"18\" value=\""+street+"\" />";
 	el.childNodes[4].innerHTML = "<input type=\"text\" size=\"4\" value=\""+zipcode+"\" />";
-	el.childNodes[5].innerHTML = "<input type=\"text\" size=\"15\" value=\""+city+"\" />";
+	el.childNodes[5].innerHTML = "<input type=\"text\" size=\"14\" value=\""+city+"\" />";
 	el.childNodes[6].innerHTML = "<input type=\"text\" size=\"6\" value=\""+birthday+"\" />";
-	el.childNodes[7].innerHTML = "<input type=\"text\" size=\"14\" value=\""+phone1+"\" />";
-	el.childNodes[8].innerHTML = "<input type=\"text\" size=\"14\" value=\""+phone2+"\" />";
-	el.childNodes[9].innerHTML = "<input type=\"text\" size=\"14\" value=\""+phone3+"\" />";
+	el.childNodes[7].innerHTML = "<input type=\"text\" size=\"12\" value=\""+phone1+"\" />";
+	el.childNodes[8].innerHTML = "<input type=\"text\" size=\"12\" value=\""+phone2+"\" />";
+	el.childNodes[9].innerHTML = "<input type=\"text\" size=\"12\" value=\""+phone3+"\" />";
 	el.childNodes[10].innerHTML = "<input type=\"text\" size=\"27\" value=\""+email+"\" />";
 	el.childNodes[11].innerHTML = "<input type=\"text\" size=\"35\" value=\""+remarks+"\" />";
 	
@@ -137,34 +162,21 @@ function insert() {
 	debug("start inserting");
 	
 	// collect all data from form
-	var el = document.getElementById("i-1");
-	var firstname = stripSpaces(el.childNodes[1].firstChild.value);
-	var lastname = stripSpaces(el.childNodes[2].firstChild.value);
-	var street = stripSpaces(el.childNodes[3].firstChild.value);
-	var zipcode = stripSpaces(el.childNodes[4].firstChild.value);
-	var city = stripSpaces(el.childNodes[5].firstChild.value);
-	var birthday = stripSpaces(el.childNodes[6].firstChild.value);
-	var phone1 = stripSpaces(el.childNodes[7].firstChild.value);
-	var phone2 = stripSpaces(el.childNodes[8].firstChild.value);
-	var phone3 = stripSpaces(el.childNodes[9].firstChild.value);
-	var email = stripSpaces(el.childNodes[10].firstChild.value);
-	var remarks = stripSpaces(el.childNodes[11].firstChild.value);
+	insertRow = document.getElementById("i-1");
+	var firstname = stripSpaces(insertRow.childNodes[1].firstChild.value);
+	var lastname = stripSpaces(insertRow.childNodes[2].firstChild.value);
+	var street = stripSpaces(insertRow.childNodes[3].firstChild.value);
+	var zipcode = stripSpaces(insertRow.childNodes[4].firstChild.value);
+	var city = stripSpaces(insertRow.childNodes[5].firstChild.value);
+	var birthday = stripSpaces(insertRow.childNodes[6].firstChild.value);
+	var phone1 = stripSpaces(insertRow.childNodes[7].firstChild.value);
+	var phone2 = stripSpaces(insertRow.childNodes[8].firstChild.value);
+	var phone3 = stripSpaces(insertRow.childNodes[9].firstChild.value);
+	var email = stripSpaces(insertRow.childNodes[10].firstChild.value);
+	var remarks = stripSpaces(insertRow.childNodes[11].firstChild.value);
 	
-	// copy "insert" row for re-adding it later
-	insertRow = el.cloneNode(true);
-	insertRow.childNodes[1].firstChild.value = "";
-	insertRow.childNodes[2].firstChild.value = "";
-	insertRow.childNodes[3].firstChild.value = "";
-	insertRow.childNodes[4].firstChild.value = "";
-	insertRow.childNodes[5].firstChild.value = "";
-	insertRow.childNodes[6].firstChild.value = "";
-	insertRow.childNodes[7].firstChild.value = "";
-	insertRow.childNodes[8].firstChild.value = "";
-	insertRow.childNodes[9].firstChild.value = "";
-	insertRow.childNodes[10].firstChild.value = "";
-	insertRow.childNodes[11].firstChild.value = "";
-	insertRow.setAttribute("bgColor", "");
-	insertRow.setAttribute("class", "sortbottom");
+	// generate new row (clone the insert row)
+	insertedRow = insertRow.cloneNode(true);
 	
 	// send request to server which updates the database there
 	XMLHTTP.open("POST", document.URL);
@@ -228,28 +240,41 @@ function insert_finish() {
 		
 		debug("finish inserting (ID="+id+")");
 		
-		// modify the "insert" table row to contain normal text
-		var el = document.getElementById("i-1");
-		el.setAttribute("id", id);
-		el.childNodes[1].innerHTML = oneTrailingSpace(firstname);
-		el.childNodes[2].innerHTML = oneTrailingSpace(lastname);
-		el.childNodes[3].innerHTML = oneTrailingSpace(street);
-		el.childNodes[4].innerHTML = oneTrailingSpace(zipcode);
-		el.childNodes[5].innerHTML = oneTrailingSpace(city);
-		el.childNodes[6].innerHTML = oneTrailingSpace(birthday);
-		el.childNodes[7].innerHTML = oneTrailingSpace(phone1);
-		el.childNodes[8].innerHTML = oneTrailingSpace(phone2);
-		el.childNodes[9].innerHTML = oneTrailingSpace(phone3);
-		el.childNodes[10].innerHTML = oneTrailingSpace(email);
-		el.childNodes[11].innerHTML = oneTrailingSpace(remarks);
-		el.removeAttribute("class");
+		// clear insert row
+		insertRow.childNodes[1].firstChild.value = "";
+		insertRow.childNodes[2].firstChild.value = "";
+		insertRow.childNodes[3].firstChild.value = "";
+		insertRow.childNodes[4].firstChild.value = "";
+		insertRow.childNodes[5].firstChild.value = "";
+		insertRow.childNodes[6].firstChild.value = "";
+		insertRow.childNodes[7].firstChild.value = "";
+		insertRow.childNodes[8].firstChild.value = "";
+		insertRow.childNodes[9].firstChild.value = "";
+		insertRow.childNodes[10].firstChild.value = "";
+		insertRow.childNodes[11].firstChild.value = "";
+		insertRow.setAttribute("bgColor", "");
+		
+		// modify the new (cloned) table row to contain the values
+		insertedRow.setAttribute("id", id);
+		insertedRow.childNodes[1].innerHTML = oneTrailingSpace(firstname);
+		insertedRow.childNodes[2].innerHTML = oneTrailingSpace(lastname);
+		insertedRow.childNodes[3].innerHTML = oneTrailingSpace(street);
+		insertedRow.childNodes[4].innerHTML = oneTrailingSpace(zipcode);
+		insertedRow.childNodes[5].innerHTML = oneTrailingSpace(city);
+		insertedRow.childNodes[6].innerHTML = oneTrailingSpace(birthday);
+		insertedRow.childNodes[7].innerHTML = oneTrailingSpace(phone1);
+		insertedRow.childNodes[8].innerHTML = oneTrailingSpace(phone2);
+		insertedRow.childNodes[9].innerHTML = oneTrailingSpace(phone3);
+		insertedRow.childNodes[10].innerHTML = oneTrailingSpace(email);
+		insertedRow.childNodes[11].innerHTML = oneTrailingSpace(remarks);
+		insertedRow.removeAttribute("class");
 		
 		// correct buttons
-		el.childNodes[0].innerHTML = "<a href=\"#\" onclick=\"edit('"+id+"'); return false;\"><img src=\"edit.png\" alt=\"\" /></a>";
-		el.childNodes[12].innerHTML = "<a href=\"#\" onclick=\"del('"+id+"'); return false;\"><img src=\"delete.png\" alt=\"\" /></a>";
+		insertedRow.childNodes[0].innerHTML = "<a href=\"#\" onclick=\"edit('"+id+"'); return false;\"><img src=\"edit.png\" alt=\"\" /></a>";
+		insertedRow.childNodes[12].innerHTML = "<a href=\"#\" onclick=\"del('"+id+"'); return false;\"><img src=\"delete.png\" alt=\"\" /></a>";
 		
 		// add the previously saved "insert" table row
-		el.parentNode.appendChild(insertRow);
+		document.getElementById("addresstable").appendChild(insertedRow);
 	}
 }
 

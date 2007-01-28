@@ -39,12 +39,16 @@ img {
 	border-color: black;
 }
 
-.ul {
+.ul, .r {
 	border-bottom-width: 1px;
 	border-bottom-style: solid;
 	border-left-width: 1px;
 	border-left-style: solid;
 	border-color: black;
+}
+
+.rn {
+	display: none;
 }
 
 .np, .nosort {
