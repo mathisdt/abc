@@ -217,7 +217,7 @@ function updateRow($id, $firstname, $lastname, $street, $zipcode, $city, $birthd
 	db_rows('update '.$dbaddresstable.' set firstname="'.mysql_escape_string($firstname).'", lastname="'.mysql_escape_string($lastname).'", street="'.
 		mysql_escape_string($street).'", zipcode="'.mysql_escape_string($zipcode).'", city="'.mysql_escape_string($city).'", birthday="'.
 		mysql_escape_string($birthday).'", phone1="'.mysql_escape_string($phone1).'", phone2="'.mysql_escape_string($phone2).'", phone3="'.
-		mysql_escape_string($phone3).'", email="'.mysql_escape_string($email).'", remarks="'.mysql_escape_string($remarks).'" where id='.substr($id,1).
+		mysql_escape_string($phone3).'", email="'.mysql_escape_string($email).'", remarks="'.mysql_escape_string($remarks).'" where id='.mysql_escape_string(substr($id,1)).
 		' and owner="'.getLoggedInUser().'"');
 	
 	// return XML
@@ -231,7 +231,7 @@ function deleteRow($id) {
 	// delete one row - only called via AJAX - returns only the ID (no XML)
 	global $dbaddresstable;
 	
-	db_rows('delete from '.$dbaddresstable.' where id='.substr($id,1).' and owner="'.getLoggedInUser().'"');
+	db_rows('delete from '.$dbaddresstable.' where id='.mysql_escape_string(substr($id,1)).' and owner="'.getLoggedInUser().'"');
 	
 	// return XML
 	return '<data><id>'.myEncode($id).'</id></data>';
