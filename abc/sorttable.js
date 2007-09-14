@@ -82,11 +82,15 @@ function ts_resortTable(lnk,clid) {
     sortfn = ts_sort_caseinsensitive;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d$/)) sortfn = ts_sort_date;
-    if (itm.match(/^[£$]/)) sortfn = ts_sort_currency;
+    if (itm.match(/^\d\d?\.\d\d?\./)) sortfn = ts_sort_date_ger;
+    if (itm.match(/^[£$¤]/)) sortfn = ts_sort_currency;
     if (itm.match(/^[\d\.]+$/)) sortfn = ts_sort_numeric;
     SORT_COLUMN_INDEX = column;
     var firstRow = new Array();
     var newRows = new Array();
+    
+    debug("rows: "+table.rows.length);
+    
     for (i=0;i<table.rows[0].length;i++) { firstRow[i] = table.rows[0][i]; }
     for (j=1;j<table.rows.length;j++) { newRows[j-1] = table.rows[j]; }
 
@@ -128,23 +132,22 @@ function getParent(el, pTagName) {
 		return getParent(el.parentNode, pTagName);
 }
 function ts_sort_date(a,b) {
-    // y2k notes: two digit years less than 50 are treated as 20XX, greater than 50 are treated as 19XX
     aa = ts_getInnerText(a.cells[SORT_COLUMN_INDEX]);
     bb = ts_getInnerText(b.cells[SORT_COLUMN_INDEX]);
-    if (aa.length == 10) {
-        dt1 = aa.substr(6,4)+aa.substr(3,2)+aa.substr(0,2);
-    } else {
-        yr = aa.substr(6,2);
-        if (parseInt(yr) < 50) { yr = '20'+yr; } else { yr = '19'+yr; }
-        dt1 = yr+aa.substr(3,2)+aa.substr(0,2);
-    }
-    if (bb.length == 10) {
-        dt2 = bb.substr(6,4)+bb.substr(3,2)+bb.substr(0,2);
-    } else {
-        yr = bb.substr(6,2);
-        if (parseInt(yr) < 50) { yr = '20'+yr; } else { yr = '19'+yr; }
-        dt2 = yr+bb.substr(3,2)+bb.substr(0,2);
-    }
+    dt1 = aa.substr(0,2)+aa.substr(3,2);
+    dt2 = bb.substr(0,2)+bb.substr(3,2);
+    if (dt1==dt2) return 0;
+    if (dt1<dt2) return -1;
+    return 1;
+}
+
+function ts_sort_date_ger(a,b) {
+    aa = ts_getInnerText(a.cells[SORT_COLUMN_INDEX]);
+    bb = ts_getInnerText(b.cells[SORT_COLUMN_INDEX]);
+    splitaa = aa.split(".");
+    splitbb = bb.split(".");
+    dt1 = splitaa[1]+splitaa[0];
+    dt2 = splitbb[1]+splitbb[0];
     if (dt1==dt2) return 0;
     if (dt1<dt2) return -1;
     return 1;

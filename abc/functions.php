@@ -17,10 +17,17 @@ function getErrorPage($errormessage) {
 		'<br /><br /><pre>'.$errormessage.' </pre></body></html>';
 }
 
+$link = NULL;
+
+function db_connect() {
+	global $link, $dbhost, $dbuser, $dbpassword;
+	$link = mysql_pconnect($dbhost, $dbuser, $dbpassword) or die(getErrorPage('MySQL connection error: ' . mysql_error()));
+}
+
 function db_result($query) {
 	// query the database and return the result
-	global $dbhost, $dbinstance, $dbuser, $dbpassword;
-	$link = mysql_pconnect($dbhost, $dbuser, $dbpassword) or die(getErrorPage('MySQL connection error: ' . mysql_error()));
+	global $dbinstance;
+	db_connect();
 	mysql_select_db($dbinstance) or die(getErrorPage('MySQL database selection error'));
 	$result = mysql_query($query) or die(getErrorPage('MySQL query error: ' . mysql_error()));
 	if (!$result) {
@@ -31,8 +38,8 @@ function db_result($query) {
 
 function db_rows($query) {
 	// query the database and return the number of affected or returned rows
-	global $dbhost, $dbinstance, $dbuser, $dbpassword;
-	$link = mysql_pconnect($dbhost, $dbuser, $dbpassword) or die(getErrorPage('MySQL connection error: ' . mysql_error()));
+	global $dbinstance;
+	db_connect();
 	mysql_select_db($dbinstance) or die(getErrorPage('MySQL database selection error'));
 	mysql_query($query) or die(getErrorPage('MySQL query error: ' . mysql_error()));
 	return mysql_affected_rows();
@@ -43,14 +50,14 @@ function login($username, $password, $passwordless = FALSE) {
 	global $dbusertable;
 	$count = 0;
 	if ($passwordless) {
-		$count = db_rows('select username from '.$dbusertable.' where username="'.mysql_escape_string($username).'"');
+		$count = db_rows('select username from '.$dbusertable.' where username="'.my_escape_string($username).'"');
 	} else {
-		$count = db_rows('select username,password from '.$dbusertable.' where username="'.mysql_escape_string($username).'" and password="'.
-			mysql_escape_string($password).'"');
+		$count = db_rows('select username,password from '.$dbusertable.' where username="'.my_escape_string($username).'" and password="'.
+			my_escape_string($password).'"');
 	}
 	if ($count == 1) {
-		db_rows('update '.$dbusertable.' set lastlogin=now() where username="'.mysql_escape_string($username).'"');
-		$_SESSION['user'] = mysql_escape_string($username);
+		db_rows('update '.$dbusertable.' set lastlogin=now() where username="'.my_escape_string($username).'"');
+		$_SESSION['user'] = my_escape_string($username);
 		return true;
 	} else {
 		$_SESSION['user'] = '';
@@ -62,7 +69,7 @@ function getLoggedInUser() {
 	// is a user logged in? if so, return the username, else return null
 	global $sessionmaxtime, $dbusertable;
 	if (isset($_SESSION['user']) && $_SESSION['user'] != '') {
-		$count = db_rows('select username from '.$dbusertable.' where username="'.mysql_escape_string($_SESSION['user']).'" '.
+		$count = db_rows('select username from '.$dbusertable.' where username="'.my_escape_string($_SESSION['user']).'" '.
 			'and addtime(lastlogin, "'.$sessionmaxtime.'")>now()');
 		if ($count == 1) {
 			return $_SESSION['user'];
@@ -75,7 +82,7 @@ function logout() {
 	// logout the user
 	global $dbusertable;
 	if (getLoggedInUser() != null) {
-		db_rows('update '.$dbusertable.' set lastlogin="0000-00-00 00:00:00" where username="'.mysql_escape_string($_SESSION['user']).'"');
+		db_rows('update '.$dbusertable.' set lastlogin="0000-00-00 00:00:00" where username="'.my_escape_string($_SESSION['user']).'"');
 		$_SESSION = array();
 		if (isset($_COOKIE[session_name()])) {
 			setcookie(session_name(), '', time()-42000, '/');
@@ -133,7 +140,7 @@ function getAllRows() {
 	}
 	$ret .= '</table></form><br />';
 	$ret .= '<form action="#"><table cellspacing="0" style="font-family:\'Times New Roman\',Times,serif; font-size: 14px;">'."\n";
-	$ret .= '<tr class="sortbottom" >';
+	$ret .= '<tr class="np">';
 	$ret .= '<th class="nosort"> </th>';
 	$ret .= '<th class="u">First Name </th>';
 	$ret .= '<th class="ul">Last Name </th>';
@@ -148,7 +155,7 @@ function getAllRows() {
 	$ret .= '<th class="rn" name="r">Remarks </th>';
 	$ret .= '<th class="nosort"> </th>';
 	$ret .= '</tr>'."\n";
-	$ret .= '<tr class="sortbottom" id="i-1" onMouseOver="mouseOver(this)" onMouseOut="mouseOut(this)">';
+	$ret .= '<tr class="np" id="i-1" onMouseOver="mouseOver(this)" onMouseOut="mouseOut(this)">';
 	$ret .= '<td class="np"><a href="#" onclick="insert(); return false;"><img src="insert.png" alt="" /></a></td>';
 	$ret .= '<td class="u"><input type="text" size="10" /></td>';
 	$ret .= '<td class="ul"><input type="text" size="12" /></td>';
@@ -183,6 +190,18 @@ function myDecode($input) {
 	return rawurldecode($input);
 }
 
+function my_escape_string($input) {
+	global $link;
+	if ($link == NULL) {
+		db_connect();
+	}
+	if (get_magic_quotes_gpc()) {
+		return mysql_real_escape_string(stripslashes($input), $link);
+    } else {
+    	return mysql_real_escape_string($input, $link);
+    }
+}
+
 function insertRow($firstname, $lastname, $street, $zipcode, $city, $birthday, $phone1, $phone2, $phone3, $email, $remarks) {
 	// insert one row - only called via AJAX - returns XML
 	global $dbaddresstable;
@@ -197,9 +216,9 @@ function insertRow($firstname, $lastname, $street, $zipcode, $city, $birthday, $
 	
 	// add the new row
 	db_rows('insert into '.$dbaddresstable.' (firstname, lastname, street, zipcode, city, birthday, phone1, phone2, phone3, email, remarks, owner) '.
-		'values ("'.mysql_escape_string($firstname).'", "'.mysql_escape_string($lastname).'", "'.mysql_escape_string($street).'", "'.
-		mysql_escape_string($zipcode).'", "'.mysql_escape_string($city).'", "'.mysql_escape_string($birthday).'", "'.mysql_escape_string($phone1).'", "'.
-		mysql_escape_string($phone2).'", "'.mysql_escape_string($phone3).'", "'.mysql_escape_string($email).'", "'.mysql_escape_string($remarks).'", "'.
+		'values ("'.my_escape_string($firstname).'", "'.my_escape_string($lastname).'", "'.my_escape_string($street).'", "'.
+		my_escape_string($zipcode).'", "'.my_escape_string($city).'", "'.my_escape_string($birthday).'", "'.my_escape_string($phone1).'", "'.
+		my_escape_string($phone2).'", "'.my_escape_string($phone3).'", "'.my_escape_string($email).'", "'.my_escape_string($remarks).'", "'.
 		getLoggedInUser().'")');
 	
 	// return XML
@@ -214,11 +233,11 @@ function updateRow($id, $firstname, $lastname, $street, $zipcode, $city, $birthd
 	global $dbaddresstable;
 	
 	// update row in database
-	db_rows('update '.$dbaddresstable.' set firstname="'.mysql_escape_string($firstname).'", lastname="'.mysql_escape_string($lastname).'", street="'.
-		mysql_escape_string($street).'", zipcode="'.mysql_escape_string($zipcode).'", city="'.mysql_escape_string($city).'", birthday="'.
-		mysql_escape_string($birthday).'", phone1="'.mysql_escape_string($phone1).'", phone2="'.mysql_escape_string($phone2).'", phone3="'.
-		mysql_escape_string($phone3).'", email="'.mysql_escape_string($email).'", remarks="'.mysql_escape_string($remarks).'" where id='.mysql_escape_string(substr($id,1)).
-		' and owner="'.getLoggedInUser().'"');
+	db_rows('update '.$dbaddresstable.' set firstname="'.my_escape_string($firstname).'", lastname="'.my_escape_string($lastname).'", street="'.
+		my_escape_string($street).'", zipcode="'.my_escape_string($zipcode).'", city="'.my_escape_string($city).'", birthday="'.
+		my_escape_string($birthday).'", phone1="'.my_escape_string($phone1).'", phone2="'.my_escape_string($phone2).'", phone3="'.
+		my_escape_string($phone3).'", email="'.my_escape_string($email).'", remarks="'.my_escape_string($remarks).'" where id="'.
+		my_escape_string(substr($id,1)).'" and owner="'.getLoggedInUser().'"');
 	
 	// return XML
 	return '<data><id>'.myEncode($id).'</id><firstname>'.myEncode($firstname).'</firstname><lastname>'.myEncode($lastname).'</lastname><street>'.
@@ -231,7 +250,7 @@ function deleteRow($id) {
 	// delete one row - only called via AJAX - returns only the ID (no XML)
 	global $dbaddresstable;
 	
-	db_rows('delete from '.$dbaddresstable.' where id='.mysql_escape_string(substr($id,1)).' and owner="'.getLoggedInUser().'"');
+	db_rows('delete from '.$dbaddresstable.' where id="'.my_escape_string(substr($id,1)).'" and owner="'.getLoggedInUser().'"');
 	
 	// return XML
 	return '<data><id>'.myEncode($id).'</id></data>';
