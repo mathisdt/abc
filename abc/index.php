@@ -60,12 +60,17 @@ if (getLoggedInUser() == null && $_SERVER['REQUEST_METHOD'] == 'POST') {
 		echo '<div id="printtitle"><h2>Address Book of '.ucfirst(getLoggedInUser()).'</h2></div>';
 		echo '<span id="navigation"><a href="#" onclick="window.print(); return false;">Print</a>&nbsp;-&nbsp;<a id="remarkslink" href="#" onclick="showRemarks(); return false;">Show remarks</a>&nbsp;-&nbsp;<a href="#" onclick="bigger(); return false;">'.
 			'Increase font size</a>&nbsp;-&nbsp;<a href="#" onclick="smaller(); return false;">Decrease font size</a>&nbsp;-&nbsp;<a href="'.getURL().
-			'?abc_action=logout">Logout</a></span>';
+			'?abc_action=palmexport">Export CSV for JPilot (for Palm devices)</a>&nbsp;-&nbsp;<a href="'.getURL().'?abc_action=logout">Logout</a></span>';
 		echo '<div id="debug"></div>';
 		echo '<br /><br />';
 		echo getAllRows();
 		echo '<br /><br />';
 		echo getFooter();
+	} else if ($_GET['abc_action'] == "palmexport") {
+		// export all data for use with JPilot
+		header('Content-type: application/csv; charset=utf-8');
+		header('Content-Disposition: attachment; filename="abc-jpilot.csv"');
+		echo getJPilotCSV();
 	} else if ($_GET['abc_action'] == "logout") {
 		// logout the user
 		logout();

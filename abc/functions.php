@@ -174,6 +174,40 @@ function getAllRows() {
 	return $ret;
 }
 
+function getJPilotCSV() {
+	// get all rows as CSV for importing it into JPilot (and then syncing it to a Palm device)
+	// NOTE: as JPilot's birthday handling is broken, the value in the birthday field is put into field "Custom1"
+	global $dbaddresstable, $defaultorder;
+	$result = db_result('select id,firstname,lastname,street,zipcode,city,birthday,phone1,phone2,phone3,email,remarks from '.$dbaddresstable.
+		' where owner="'.getLoggedInUser().'" order by '.$defaultorder);
+	$ret = 'CSV address: Category, Private, Last, First, Title, Company, Phone1, Phone2, Phone3,';
+	$ret .= ' Phone4, Phone5, Address, City, State, ZipCode, Country, Custom1, Custom2, Custom3, Custom4, Note,';
+	$ret .= ' phoneLabel1, phoneLabel2, phoneLabel3, phoneLabel4, phoneLabel5, showPhone'."\n";
+	
+	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$ret .= '"Nicht abgelegt","0","'.encodeToUtf8($row['lastname']).'","'.encodeToUtf8($row['firstname']).'","","","'.encodeToUtf8($row['phone1']).'","'.encodeToUtf8($row['phone2']).'","'.encodeToUtf8($row['phone3']).'"';
+		$ret .= ',"'.encodeToUtf8($row['email']).'","","'.encodeToUtf8($row['street']).'","'.encodeToUtf8($row['city']).'","","'.encodeToUtf8($row['zipcode']).'","","'.encodeToUtf8($row['birthday']).'","","","","'.encodeToUtf8($row['remarks']).'"';
+		$ret .= ',"'.getPilotPhoneType($row['phone1']).'","'.getPilotPhoneType($row['phone2']).'","'.getPilotPhoneType($row['phone3']).'","4","1","0"'."\n";
+	}
+	// return the UTF8 data
+	return $ret;
+}
+
+function encodeToUtf8($input) {
+	return utf8_encode($input);
+}
+
+function getPilotPhoneType($phone) {
+	// types:   1 = wired phone   /   7 = cell phone   (and 4 = email, but this is not used here)
+	if ($phone==null || $phone=="") {
+		return "1";
+	} else if (preg_match('/^01[5-7]/', $phone)) {
+		return "7";
+	} else {
+		return "1";
+	}
+}
+
 function nbspIfEmpty($input) {
 	if (strlen($input) > 0) {
 		return $input;
